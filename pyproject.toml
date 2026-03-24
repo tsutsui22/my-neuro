@@ -1,0 +1,49 @@
+[project]
+name = "my-neuro"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    # API framework
+    "fastapi",
+    "uvicorn[standard]",
+    "python-multipart",
+    "aiohttp",
+    "requests",
+    "websockets",
+
+    # Core AI / ML
+    "numpy",
+    "scikit-learn",
+    "pydantic>=2.0.0",
+    "openai",
+    "transformers>=4.30.0",
+    "peft",
+    "datasets",
+    "onnxruntime",
+
+    # ASR
+    "funasr>=0.9.6",
+    "modelscope",
+
+    # Embeddings / RAG / Memory
+    "sentence-transformers",
+    "watchdog",
+    "rank-bm25>=0.2.2",
+    "qdrant-client>=1.7.0",
+    "networkx>=3.0",
+    "pyvis>=0.3.0",
+
+    # Document processing
+    "pypdf>=3.0.0",
+    "beautifulsoup4>=4.12.0",
+    "markdown",
+    "py7zr",
+
+    # UI
+    "streamlit",
+    "pillow",
+]
+
+# torch/torchaudio must be installed separately with the correct CUDA index.
+# Run after `uv sync`:
+#   uv pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu121

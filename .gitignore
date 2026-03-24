@@ -1,6 +1,11 @@
 # 不忽略 .gitignore 本身
 !.gitignore
 
+# API keys / secrets
+.env
+live-2d/config.json
+memos_system/config/memos_config.json
+
 
 # 忽略特定文件夹
 # live-2d/2D/*
@@ -32,4 +37,5 @@ full-hub/tts-hub
 
 runtime.logfull-hub/ 
 
-
+__pycache__
+*.pyc
