@@ -31,7 +31,6 @@ function createWindow () {
         backgroundColor: '#00000000',
         hasShadow: false,
         focusable: true,
-        type: 'desktop',
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
