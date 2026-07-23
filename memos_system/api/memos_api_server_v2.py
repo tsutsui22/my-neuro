@@ -11,11 +11,21 @@
 - MemCube 容器
 """
 
+import os
+import re
 import sys
+
 if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 if sys.stderr and hasattr(sys.stderr, 'reconfigure'):
     sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
+# Load my-neuro/.env (two levels up from api/) before anything else reads os.environ
+try:
+    from dotenv import load_dotenv as _load_dotenv
+    _load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".env"))
+except ImportError:
+    pass  # python-dotenv not installed; set env vars manually
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,8 +35,6 @@ from typing import List, Dict, Optional, Any
 from contextlib import asynccontextmanager
 import uvicorn
 import json
-import os
-import re
 import asyncio
 import uuid
 import logging
@@ -34,6 +42,39 @@ from datetime import datetime
 
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+
+
+def _resolve_env_vars(obj):
+    """Recursively replace ${VAR_NAME} placeholders with environment variable values.
+
+    Full-token "${MY_VAR}" is type-coerced (bool → bool, numeric → int/float).
+    Partial "prefix_${MY_VAR}" stays a string.
+    """
+    if isinstance(obj, str):
+        full = re.match(r'^\$\{(\w+)\}$', obj)
+        if full:
+            val = os.environ.get(full.group(1), obj)
+            if isinstance(val, str):
+                if val.lower() == 'true':
+                    return True
+                if val.lower() == 'false':
+                    return False
+                try:
+                    return int(val)
+                except (ValueError, AttributeError):
+                    pass
+                try:
+                    return float(val)
+                except (ValueError, AttributeError):
+                    pass
+            return val
+        return re.sub(r'\$\{(\w+)\}', lambda m: os.environ.get(m.group(1), ''), obj)
+    if isinstance(obj, dict):
+        return {k: _resolve_env_vars(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_resolve_env_vars(v) for v in obj]
+    return obj
+
 
 # 配置日志
 logging.basicConfig(
@@ -157,7 +198,7 @@ async def startup_event():
         
         if os.path.exists(config_path):
             with open(config_path, 'r', encoding='utf-8') as f:
-                config = json.load(f)
+                config = _resolve_env_vars(json.load(f))
                 full_config = config
                 llm_config = config.get('llm', {}).get('config', {})
                 
